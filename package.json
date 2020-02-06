@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/bensteffen/multichartjs/issues"
   },
-  "homepage": "https://github.com/bensteffen/multichartjs#readme"
+  "homepage": "https://github.com/bensteffen/multichartjs#readme",
+  "dependencies": {
+    "d3": "^3.5.17"
+  }
 }

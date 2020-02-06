@@ -1,4 +1,6 @@
 
+import * as d3 from 'd3';
+
 /**
  * Class MultiChartDataSet
  * Recieves raw chart-data via method //setRaw//. Reshaped (property //map//) and
@@ -879,4 +881,4 @@ var MultiChartEval = (function() { "use strict";
   }
 }());
 
-module.exports = MultiChart;
+export { MultiChart, MultiChartDataSet, MultiChartLinearDomain, MultiChartLineView, MultiChartAxisView  };

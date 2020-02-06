@@ -1,0 +1,19 @@
+{
+  "name": "multichartjs",
+  "version": "1.0.0",
+  "description": "d3 wrapper",
+  "main": "multichart.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bensteffen/multichartjs.git"
+  },
+  "author": "Florian Haeussinger",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bensteffen/multichartjs/issues"
+  },
+  "homepage": "https://github.com/bensteffen/multichartjs#readme"
+}

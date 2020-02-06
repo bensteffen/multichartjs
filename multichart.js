@@ -879,3 +879,4 @@ var MultiChartEval = (function() { "use strict";
   }
 }());
 
+module.exports = MultiChart;

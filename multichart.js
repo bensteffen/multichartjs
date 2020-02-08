@@ -463,7 +463,9 @@ var MultiChartView = (function() { "use strict";
   }
 
   MultiChartView.prototype.data = function() {
-    return this.dataSet.getData(this.scope).filter(MultiChartEval.makeFilter(this.filter)).map(this.extractor);
+    var filter = MultiChartEval.makeFilter(this.filter);
+    var extractor = MultiChartEval.makeExtractor(this.extractor);
+    return this.dataSet.getData(this.scope).filter(filter).map(extractor);
   }
 
   MultiChartView.prototype.calculateExtent = function(data) {
@@ -794,13 +796,16 @@ var MultiChartFactory = (function() { "use strict";
 var MultiChartEval = (function() { "use strict";
 
   function makeMap(config) {
-    if (!config) {
-      return function(row) { return row };
-    }
     return MultiChartEval.makeExtractor(config);
   }
 
   function makeExtractor(config) {
+    if (!config) {
+      return function(row) { return row };
+    }
+    if (typeof config === 'function') {
+      return config;
+    }
     return function(row, index) {
       var dataItem = {};
       Object.keys(config).forEach(function(dataField) {
@@ -813,6 +818,9 @@ var MultiChartEval = (function() { "use strict";
   function makeFilter(config) {
     if (!config) {
       return function() { return true; };
+    }
+    if (typeof config === 'function') {
+      return config;
     }
     if (config['binaryOperation']) {
       switch (config['binaryOperation']) {
@@ -881,4 +889,15 @@ var MultiChartEval = (function() { "use strict";
   }
 }());
 
-export { MultiChart, MultiChartDataSet, MultiChartLinearDomain, MultiChartLineView, MultiChartAxisView  };
+export {
+  MultiChart,
+  MultiChartDataSet,
+  MultiChartDomain,
+  MultiChartLinearDomain,
+  MultiChartLineView,
+  MultiChartLabelView,
+  MultiChartAxisView,
+  MultiChartAreaView,
+  MultiChartBarView,
+  MultiChartMarkerView
+};

@@ -598,8 +598,9 @@ var MultiChartAreaView = (function() { "use strict";
     var first = data.shift();
     var last = data.pop();
     var d = this.dFactory(this.data());
-    d = d.replace(/^M/, 'M' + this.domain.toX(first.x) + ',' + this.domain.toY(0) + 'L');
-    d += 'L' + this.domain.toX(last.x) + ',' + this.domain.toY(0) + 'Z';
+    var base = this.domain.yExtent[0];
+    d = d.replace(/^M/, 'M' + this.domain.toX(first.x) + ',' + this.domain.toY(base) + 'L');
+    d += 'L' + this.domain.toX(last.x) + ',' + this.domain.toY(base) + 'Z';
     this.path.attr('d', d);
   }
 
@@ -796,6 +797,9 @@ var MultiChartFactory = (function() { "use strict";
 var MultiChartEval = (function() { "use strict";
 
   function makeMap(config) {
+    if (!config) {
+      return function(row) { return row };
+    }
     return MultiChartEval.makeExtractor(config);
   }
 
@@ -893,6 +897,8 @@ export {
   MultiChart,
   MultiChartDataSet,
   MultiChartDomain,
+  MultiChartDataScope,
+  MultiChartDataPipe,
   MultiChartLinearDomain,
   MultiChartLineView,
   MultiChartLabelView,

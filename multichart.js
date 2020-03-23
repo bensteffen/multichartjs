@@ -510,8 +510,25 @@ var MultiChartAxisView = (function() { "use strict";
       .orient(this.orient || 'bottom')
       .innerTickSize(this.innerTickSize || 0)
       .outerTickSize(this.tickSize || 0)
-      .tickPadding(this.tickPadding || 5)
-      // .tickFormat(this.tickFormat || d3.format('d'))
+      .tickPadding(this.tickPadding || 5);
+
+    if (this.tickFormat) {
+      var formatType = this.tickFormat.type || 'number';
+      var formatters, localeFormat;
+      if (this.tickFormat.locale === 'en' || !this.tickFormat.locale) {
+        formatters = {
+          number: function(f) { return d3.format(f) },
+          time: function(f) { return d3.time.format(f) }
+        }
+      } else {
+        localeFormat = this.getLocaleFormat(this.tickFormat.locale);
+        formatters = {
+          number: function(f) { return localeFormat.numberFormat(f) },
+          time: function(f) { return localeFormat.timeFormat(f) }
+        }
+      }
+      this.axisFactory.tickFormat(formatters[formatType](this.tickFormat.format));
+    }
 
     if (this.tickNumber) {
       this.axisFactory.ticks(this.tickNumber);
@@ -545,7 +562,7 @@ var MultiChartAxisView = (function() { "use strict";
       this.axisGroup.attr('transform', 'translate(' + this.domain.size.width + ',0)');
     }
   }
-  
+
   MultiChartAxisView.prototype.updateLabel = function() {
     this.labelElement.text(this.label.content);
     var textWidth = this.labelElement.node().getBBox().width;
@@ -573,8 +590,68 @@ var MultiChartAxisView = (function() { "use strict";
     this.labelElement.attr('transform', 'translate(' + x + ',' + y + ') rotate(' + rotate + ')');
   }
 
+  MultiChartAxisView.prototype.getLocaleFormat = function(locale) {
+    switch (locale) {
+      case 'de':
+        return d3.locale({
+          "decimal": ",",
+          "thousands": ".",
+          "grouping": [3],
+          "currency": ["€", ""],
+          "dateTime": "%a %b %e %X %Y",
+          "date": "%d.%m.%Y",
+          "time": "%H:%M:%S",
+          "periods": ["AM", "PM"],
+          "days": ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
+          "shortDays": ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
+          "months": ["Jannuar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
+          "shortMonths": ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
+        });
+    }
+  }
+
   return MultiChartAxisView;
 }());
+
+
+var MultiChartCursorView = (function() { "use strict";
+  MultiChartCursorView.prototype = Object.create(MultiChartView.prototype)
+  MultiChartCursorView.prototype.constructor = MultiChartCursorView;
+
+  function MultiChartCursorView(name) {  
+    MultiChartView.call(this, name);
+  }
+  
+  MultiChartCursorView.prototype.buildView = function() {
+    if (this.position === undefined || this.position === null) {
+      this.position = 0;
+    }
+    this.scale = this.scale || 'x';
+    this.cursor = this.container.append('line');
+  }
+
+  MultiChartCursorView.prototype.update = function() {
+    switch(this.scale) {
+      case 'x':
+        this.cursor
+          .attr('x1', this.domain.toX(this.position))
+          .attr('y1', this.domain.toY(this.domain.yExtent[0]))
+          .attr('x2', this.domain.toX(this.position))
+          .attr('y2', this.domain.toY(this.domain.yExtent[1]))
+        break;
+      case 'y':
+        this.cursor
+          .attr('x1', this.domain.toX(this.domain.xExtent[0]))
+          .attr('y1', this.domain.toY(this.position))
+          .attr('x2', this.domain.toX(this.domain.xExtent[1]))
+          .attr('y2', this.domain.toY(this.position))
+        break;
+    }
+  }
+
+  return MultiChartCursorView;
+}());
+
 
 /**
  * Class MultiChartLineView extends MultiChartView
@@ -790,7 +867,8 @@ var MultiChartFactory = (function() { "use strict";
       bar: MultiChartBarView,
       marker: MultiChartMarkerView,
       label: MultiChartLabelView,
-      axis: MultiChartAxisView
+      axis: MultiChartAxisView,
+      cursor: MultiChartCursorView
     }
   }
 

@@ -1019,5 +1019,6 @@ export {
   MultiChartAxisView,
   MultiChartAreaView,
   MultiChartBarView,
-  MultiChartMarkerView
+  MultiChartMarkerView,
+  MultiChartCursorView
 };

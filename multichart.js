@@ -518,15 +518,24 @@ var MultiChartAxisView = (function() { "use strict";
     }
 
     this.axisGroup = this.container.append('g').attr('class', 'axis');
+    if (this.label) {
+      this.labelElement = this.axisGroup.append('text');
+    }
   }
 
   MultiChartAxisView.prototype.update = function() {
     if (this.scale === 'x') {
       this.axisFactory.scale(this.domain.xDomain);
       if (this.gridLines) this.axisFactory.innerTickSize(-this.domain.size.height);
+      if (this.labelElement) {
+        this.updateLabel();
+      }
     } else if (this.scale === 'y') {
       this.axisFactory.scale(this.domain.yDomain);  
       if (this.gridLines) this.axisFactory.innerTickSize(-this.domain.size.width);
+      if (this.labelElement) {
+        this.updateLabel();
+      }
     }
     this.axisGroup.call(this.axisFactory);
     if (this.position === 'bottom') {
@@ -535,6 +544,33 @@ var MultiChartAxisView = (function() { "use strict";
     if (this.position === 'right') {
       this.axisGroup.attr('transform', 'translate(' + this.domain.size.width + ',0)');
     }
+  }
+  
+  MultiChartAxisView.prototype.updateLabel = function() {
+    this.labelElement.text(this.label.content);
+    var textWidth = this.labelElement.node().getBBox().width;
+
+    var labelDistance = this.label.distance || 32;
+    var x, y, rotate;
+    if (this.scale === 'x') {
+      var xMin = this.domain.toX(this.domain.xExtent[0]);
+      var xMax = this.domain.toX(this.domain.xExtent[1]);
+      x = 0.5*(xMax - xMin) - 0.5*textWidth;
+      y = labelDistance;
+
+      rotate = this.label.rotate || 0;
+    } else {
+      if (this.position !== 'right') labelDistance = -labelDistance;
+      x = labelDistance;
+
+      var yMin = this.domain.toY(this.domain.yExtent[0]);
+      var yMax = this.domain.toY(this.domain.yExtent[1]);
+      y = 0.5*(yMin - yMax) - 0.5*textWidth;
+
+      rotate = this.label.rotate || -90;
+    }
+
+    this.labelElement.attr('transform', 'translate(' + x + ',' + y + ') rotate(' + rotate + ')');
   }
 
   return MultiChartAxisView;

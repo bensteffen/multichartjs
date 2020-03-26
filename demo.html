@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Multichart - Ist-Ziel</title>
+
+    <script src="./dist/multichart.js"></script>
+
+    <style>
+        #chartContainer {
+            width: 90vw;
+            height: 50vh;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        text {
+            text-anchor: middle;
+        }
+
+        .y-axis path, .x-axis line {
+            stroke: lightgray;
+        }
+
+        .fahn-lines path {
+            stroke: orange;
+            stroke-width: 3px;
+            fill: none;
+        }
+
+        .mark-bars rect {
+            fill: cornflowerblue;
+        }
+    </style>
+</head>
+<body>
+    <div id="chartContainer"></div>
+    <script>
+        var dataSetConfig = `{
+            "buildFilter": {
+                "A": {"select": ["0CALYEAR","key"]},
+                "within": ["2017", "2020"]
+            },
+            "buildScopes": [
+                {
+                    "name": "markierung",
+                    "buildPipes": [
+                        {
+                            "buildFilter": {
+                                "A": {"select": ["TYPE","key"]},
+                                "binaryOperation": "=",
+                                "B": "ziel"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "fahndung",
+                    "buildPipes": [
+                        {
+                            "buildFilter": {
+                                "A": {"select": ["TYPE","key"]},
+                                "binaryOperation": "=",
+                                "B": "ist"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }`;
+        var dataSet = MultiChart.factory.build(dataSetConfig, 'dataSet');
+        dataSet.setRaw(loadData());
+
+        var chart = new MultiChart.chart({
+            parent: document.getElementById('chartContainer'),
+            buildDomains: JSON.parse(`
+                [
+                    {
+                        "type": "linear",
+                        "config": {
+                            "name": "diebsh",
+                            "yLimits": "auto",
+                            "xSpace": 0.5,
+                            "margin": {
+                                "left": 75,
+                                "right": 0,
+                                "top": 25,
+                                "bottom": 100
+                            },
+                            "buildViews": [
+                                {
+                                    "type": "axis",
+                                    "config": {
+                                        "name": "y-axis",
+                                        "buildExtractor": "(r,i) => ({ x: i, y: r.value })",
+                                        "scope": "fahndung",
+                                        "scale": "y",
+                                        "orient": "left",
+                                        "position": "left",
+                                        "tickNumber": 5,
+                                        "gridLines": true,
+                                        "tickFormat": {
+                                            "locale": "de",
+                                            "format": ",.2f"
+                                        }
+                                    }
+                                },
+                                {
+                                    "type": "label",
+                                    "config": {
+                                        "name": "years",
+                                        "scope": "markierung",
+                                        "buildExtractor": "(r,i) => ({ x: i, y: '$min', label: r['0CALYEAR'].text })",
+                                        "offset": 40
+                                    }
+                                },
+                                {
+                                    "type": "bar",
+                                    "config": {
+                                    "name": "mark-bars",
+                                    "scope": "markierung",
+                                    "buildExtractor": {
+                                        "x": "$index",
+                                        "y": {
+                                        "select": "value"
+                                        }
+                                    },
+                                    "barWidthRatio": 0.618
+                                    }
+                                },
+                                {
+                                    "type": "label",
+                                    "config": {
+                                    "name": "mark-values",
+                                    "scope": "markierung",
+                                    "buildExtractor": "(r,i) => ({ x: i, y: '$min', label: r.formattedValue })",
+                                    "offset": 20
+                                    }
+                                },
+                                {
+                                    "type": "line",
+                                    "config": {
+                                    "name": "fahn-lines",
+                                    "scope": "fahndung",
+                                    "buildExtractor": "(r,i) => ({ x: i, y: r.value })"
+                                    }
+                                },
+                                {
+                                    "type": "marker",
+                                    "config": {
+                                    "name": "fahn-markers",
+                                    "scope": "fahndung",
+                                    "buildExtractor": {
+                                        "x": "$index",
+                                        "y": {
+                                            "select": "value"
+                                        }
+                                    },
+                                    "shape": "circle"
+                                    }
+                                },
+                                {
+                                    "type": "label",
+                                    "config": {
+                                    "name": "fahn-values",
+                                    "scope": "fahndung",
+                                    "buildExtractor": {
+                                        "x": "$index",
+                                        "y": {
+                                            "select": "value",
+                                            "times": 0.5
+                                        },
+                                        "label": {
+                                        "select": "formattedValue"
+                                        }
+                                    },
+                                    "offset": -8
+                                    }
+                                },
+                                {
+                                    "type": "cursor",
+                                    "config": {
+                                        "name": "x-axis",
+                                        "scale": "y",
+                                        "position": "0"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+
+            `)
+        });
+
+        chart.setDataSet(dataSet);
+		chart.build();
+		chart.update();
+
+        function loadData() {
+            return JSON.parse(`[{"0CALYEAR":{"key":"2017","text":"2017"},"TYPE":{"key":"ziel","text":"Ziel"},"value":1000.01,"formattedValue":"10"},{"0CALYEAR":{"key":"2017","text":"2017"},"TYPE":{"key":"ist","text":"Ist"},"value":-900.12,"formattedValue":"9"},{"0CALYEAR":{"key":"2018","text":"2018"},"TYPE":{"key":"ziel","text":"Ziel"},"value":1100.54,"formattedValue":"12"},{"0CALYEAR":{"key":"2018","text":"2018"},"TYPE":{"key":"ist","text":"Ist"},"value":1050.44,"formattedValue":"11"},{"0CALYEAR":{"key":"2019","text":"2019"},"TYPE":{"key":"ziel","text":"Ziel"},"value":1400.95,"formattedValue":"15"},{"0CALYEAR":{"key":"2019","text":"2019"},"TYPE":{"key":"ist","text":"Ist"},"value":1550.56,"formattedValue":"16"},{"0CALYEAR":{"key":"2020","text":"2020"},"TYPE":{"key":"ziel","text":"Ziel"},"value":1700.32,"formattedValue":"17"},{"0CALYEAR":{"key":"2020","text":"2020"},"TYPE":{"key":"ist","text":"Ist"},"value":1800.48,"formattedValue":"18"}]`);
+        }
+    </script>
+</body>
+</html>

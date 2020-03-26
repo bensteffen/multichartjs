@@ -2,7 +2,7 @@
   "name": "multichartjs",
   "version": "1.0.0",
   "description": "d3 wrapper",
-  "main": "multichart.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,6 +17,11 @@
   },
   "homepage": "https://github.com/bensteffen/multichartjs#readme",
   "dependencies": {
-    "d3": "^3.5.17"
+    "d3": "^3.5.17",
+    "eseval": "git+https://github.com/bensteffen/eseval.git"
+  },
+  "devDependencies": {
+    "webpack": "^4.41.6",
+    "webpack-cli": "^3.3.11"
   }
 }

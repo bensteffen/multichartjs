@@ -649,20 +649,25 @@ var MultiChartCursorView = (function() { "use strict";
   MultiChartCursorView.prototype.update = function() {
     var self = this;
     this.cursor.data(this.getCursorData()).enter();
+    var start, stop;
     switch(this.scale) {
       case 'x':
+        start = this.start || this.domain.yExtent[0];
+        stop  = this.stop  || this.domain.yExtent[1];
         this.cursor
           .attr('x1', function(d) { return self.domain.toX(d.position) })
-          .attr('y1', this.domain.toY(this.domain.yExtent[0]))
+          .attr('y1', this.domain.toY(start))
           .attr('x2', function(d) { return self.domain.toX(d.position) })
-          .attr('y2', this.domain.toY(this.domain.yExtent[1]))
+          .attr('y2', this.domain.toY(stop) )
         break;
       case 'y':
+        start = this.start || this.domain.xExtent[0];
+        stop  = this.stop  || this.domain.xExtent[1];
         this.cursor
-          .attr('x1', this.domain.toX(this.domain.xExtent[0]))
-          .attr('y1', function(d) { return self.domain.toX(d.position) })
-          .attr('x2', this.domain.toX(this.domain.xExtent[1]))
-          .attr('y2', function(d) { return self.domain.toX(d.position) })
+          .attr('x1', this.domain.toX(start))
+          .attr('y1', function(d) { return self.domain.toY(d.position) })
+          .attr('x2', this.domain.toX(stop ))
+          .attr('y2', function(d) { return self.domain.toY(d.position) })
         break;
     }
   }
@@ -874,7 +879,7 @@ var MultiChartMarkerView = (function() { "use strict";
     var self = this;
 
     if (!this.container) return;
-    
+
     this.container.selectAll('path').data(this.data())
       .attr("transform", function(d) {
         return "translate(" + self.domain.toX(d.x) + "," + self.domain.toY(d.y) + ")"

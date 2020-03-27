@@ -16591,8 +16591,6 @@ var evaluator = EsprimaEvaluator;
 // CONCATENATED MODULE: ./src/multichart.js
 
 
-// import * as EsEval from '../node_modules/eseval/src/index.js';
-
 
 
 /**
@@ -16857,6 +16855,19 @@ var multichart_MultiChart = (function() { "use strict";
     }
   };
 
+  MultiChart.prototype.findView = function(name) {
+    var self = this;
+    var view = null;
+    self.domains.forEach(function(domain) {
+      var result = domain.views.filter(function(v) { return v.name === name }).pop();
+      if (result) {
+        view = result;
+        return;
+      }
+    });
+    return view;
+  }
+  
   return MultiChart;
 }());
 
@@ -17063,6 +17074,9 @@ var multichart_MultiChartView = (function() { "use strict";
   }
 
   MultiChartView.prototype.calculateExtent = function(data) {
+    if (data.length < 2) {
+      return { x: undefined, y: undefined };
+    };
     return {
       x: d3["extent"](data.map(function(d) { return d.x })),
       y: d3["extent"](data.map(function(d) { return d.y }))
@@ -17217,29 +17231,47 @@ var MultiChartCursorView = (function() { "use strict";
   }
   
   MultiChartCursorView.prototype.buildView = function() {
-    if (this.position === undefined || this.position === null) {
-      this.position = 0;
-    }
     this.scale = this.scale || 'x';
-    this.cursor = this.container.append('line');
+    this.cursor = this.container.selectAll('line')
+      .data(this.getCursorData()).enter()
+      .append('line');
   }
 
   MultiChartCursorView.prototype.update = function() {
+    var self = this;
+    this.cursor.data(this.getCursorData()).enter();
+    var start, stop;
     switch(this.scale) {
       case 'x':
+        start = this.start || this.domain.yExtent[0];
+        stop  = this.stop  || this.domain.yExtent[1];
         this.cursor
-          .attr('x1', this.domain.toX(this.position))
-          .attr('y1', this.domain.toY(this.domain.yExtent[0]))
-          .attr('x2', this.domain.toX(this.position))
-          .attr('y2', this.domain.toY(this.domain.yExtent[1]))
+          .attr('x1', function(d) { return self.domain.toX(d.position) })
+          .attr('y1', this.domain.toY(start))
+          .attr('x2', function(d) { return self.domain.toX(d.position) })
+          .attr('y2', this.domain.toY(stop) )
         break;
       case 'y':
+        start = this.start || this.domain.xExtent[0];
+        stop  = this.stop  || this.domain.xExtent[1];
         this.cursor
-          .attr('x1', this.domain.toX(this.domain.xExtent[0]))
-          .attr('y1', this.domain.toY(this.position))
-          .attr('x2', this.domain.toX(this.domain.xExtent[1]))
-          .attr('y2', this.domain.toY(this.position))
+          .attr('x1', this.domain.toX(start))
+          .attr('y1', function(d) { return self.domain.toY(d.position) })
+          .attr('x2', this.domain.toX(stop ))
+          .attr('y2', function(d) { return self.domain.toY(d.position) })
         break;
+    }
+  }
+
+  MultiChartCursorView.prototype.getCursorData = function() {
+    if (this.position === undefined || this.position === null) {
+      return this.data();
+    } else {
+      if (!Array.isArray(this.position)) {
+        return [{ position: this.position }];
+      } else {
+        return this.position.map(function(p) { return { position: p }; });
+      }
     }
   }
 
@@ -17436,6 +17468,8 @@ var multichart_MultiChartMarkerView = (function() { "use strict";
 
   MultiChartMarkerView.prototype.update = function() {
     var self = this;
+
+    if (!this.container) return;
 
     this.container.selectAll('path').data(this.data())
       .attr("transform", function(d) {

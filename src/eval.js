@@ -32,6 +32,9 @@ var MultiChartEval = (function() { "use strict";
     if (!config) {
       return function() { return true; };
     }
+    if (typeof config === 'string') {
+      return new EsEval.evaluator().setProgram(config).start();
+    }
     if (typeof config === 'function') {
       return config;
     }

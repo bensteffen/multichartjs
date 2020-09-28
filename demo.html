@@ -23,19 +23,28 @@
             stroke: lightgray;
         }
 
-        .fahn-lines path {
+        .ist-lines path {
             stroke: orange;
             stroke-width: 3px;
             fill: none;
         }
 
-        .mark-bars rect {
+        .ist-markers {
+            fill: orange;
+        }
+
+        .ziel-bars rect {
             fill: cornflowerblue;
+        }
+
+        .years text {
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div id="chartContainer"></div>
+    <button onclick="updateChart()">UPDATE</button>
     <script>
         var dataSetConfig = `{
             "buildFilter": {
@@ -44,19 +53,15 @@
             },
             "buildScopes": [
                 {
-                    "name": "markierung",
+                    "name": "zielScope",
                     "buildPipes": [
                         {
-                            "buildFilter": {
-                                "A": {"select": ["TYPE","key"]},
-                                "binaryOperation": "=",
-                                "B": "ziel"
-                            }
+                            "buildFilter": "row => row.TYPE.key === 'ziel'"
                         }
                     ]
                 },
                 {
-                    "name": "fahndung",
+                    "name": "istScope",
                     "buildPipes": [
                         {
                             "buildFilter": {
@@ -79,7 +84,7 @@
                     {
                         "type": "linear",
                         "config": {
-                            "name": "diebsh",
+                            "name": "ist-ziel",
                             "yLimits": "auto",
                             "xSpace": 0.5,
                             "margin": {
@@ -94,7 +99,7 @@
                                     "config": {
                                         "name": "y-axis",
                                         "buildExtractor": "(r,i) => ({ x: i, y: r.value })",
-                                        "scope": "fahndung",
+                                        "scope": "istScope",
                                         "scale": "y",
                                         "orient": "left",
                                         "position": "left",
@@ -110,7 +115,7 @@
                                     "type": "label",
                                     "config": {
                                         "name": "years",
-                                        "scope": "markierung",
+                                        "scope": "zielScope",
                                         "buildExtractor": "(r,i) => ({ x: i, y: '$min', label: r['0CALYEAR'].text })",
                                         "offset": 40
                                     }
@@ -118,8 +123,8 @@
                                 {
                                     "type": "bar",
                                     "config": {
-                                    "name": "mark-bars",
-                                    "scope": "markierung",
+                                    "name": "ziel-bars",
+                                    "scope": "zielScope",
                                     "buildExtractor": {
                                         "x": "$index",
                                         "y": {
@@ -132,25 +137,25 @@
                                 {
                                     "type": "label",
                                     "config": {
-                                    "name": "mark-values",
-                                    "scope": "markierung",
-                                    "buildExtractor": "(r,i) => ({ x: i, y: '$min', label: r.formattedValue })",
-                                    "offset": 20
+                                    "name": "ziel-values",
+                                    "scope": "zielScope",
+                                    "buildExtractor": "(r,i) => ({ x: i, y: '$max', label: '#' + (i+1) })",
+                                    "offset": -8
                                     }
                                 },
                                 {
                                     "type": "line",
                                     "config": {
-                                    "name": "fahn-lines",
-                                    "scope": "fahndung",
+                                    "name": "ist-lines",
+                                    "scope": "istScope",
                                     "buildExtractor": "(r,i) => ({ x: i, y: r.value })"
                                     }
                                 },
                                 {
                                     "type": "marker",
                                     "config": {
-                                    "name": "fahn-markers",
-                                    "scope": "fahndung",
+                                    "name": "ist-markers",
+                                    "scope": "istScope",
                                     "buildExtractor": {
                                         "x": "$index",
                                         "y": {
@@ -163,8 +168,8 @@
                                 {
                                     "type": "label",
                                     "config": {
-                                    "name": "fahn-values",
-                                    "scope": "fahndung",
+                                    "name": "ist-values",
+                                    "scope": "istScope",
                                     "buildExtractor": {
                                         "x": "$index",
                                         "y": {
@@ -175,7 +180,7 @@
                                         "select": "formattedValue"
                                         }
                                     },
-                                    "offset": -8
+                                    "offset": 8
                                     }
                                 },
                                 {
@@ -196,10 +201,16 @@
 
         chart.setDataSet(dataSet);
 		chart.build();
-		chart.update();
+        chart.findView('ist-values').rotate = 0;
+        chart.update();
+        
+        function updateChart() {
+            chart.findView('ist-values').rotate += 90;
+            chart.update();
+        }
 
         function loadData() {
-            return JSON.parse(`[{"0CALYEAR":{"key":"2017","text":"2017"},"TYPE":{"key":"ziel","text":"Ziel"},"value":1000.01,"formattedValue":"10"},{"0CALYEAR":{"key":"2017","text":"2017"},"TYPE":{"key":"ist","text":"Ist"},"value":-900.12,"formattedValue":"9"},{"0CALYEAR":{"key":"2018","text":"2018"},"TYPE":{"key":"ziel","text":"Ziel"},"value":1100.54,"formattedValue":"12"},{"0CALYEAR":{"key":"2018","text":"2018"},"TYPE":{"key":"ist","text":"Ist"},"value":1050.44,"formattedValue":"11"},{"0CALYEAR":{"key":"2019","text":"2019"},"TYPE":{"key":"ziel","text":"Ziel"},"value":1400.95,"formattedValue":"15"},{"0CALYEAR":{"key":"2019","text":"2019"},"TYPE":{"key":"ist","text":"Ist"},"value":1550.56,"formattedValue":"16"},{"0CALYEAR":{"key":"2020","text":"2020"},"TYPE":{"key":"ziel","text":"Ziel"},"value":1700.32,"formattedValue":"17"},{"0CALYEAR":{"key":"2020","text":"2020"},"TYPE":{"key":"ist","text":"Ist"},"value":1800.48,"formattedValue":"18"}]`);
+            return JSON.parse(`[{"0CALYEAR":{"key":"2017","text":"2017"},"TYPE":{"key":"ziel","text":"Ziel"},"value":-1000.01,"formattedValue":"-10"},{"0CALYEAR":{"key":"2017","text":"2017"},"TYPE":{"key":"ist","text":"Ist"},"value":-900.12,"formattedValue":"-9"},{"0CALYEAR":{"key":"2018","text":"2018"},"TYPE":{"key":"ziel","text":"Ziel"},"value":1100.54,"formattedValue":"11"},{"0CALYEAR":{"key":"2018","text":"2018"},"TYPE":{"key":"ist","text":"Ist"},"value":1050.44,"formattedValue":"11"},{"0CALYEAR":{"key":"2019","text":"2019"},"TYPE":{"key":"ziel","text":"Ziel"},"value":1400.95,"formattedValue":"15"},{"0CALYEAR":{"key":"2019","text":"2019"},"TYPE":{"key":"ist","text":"Ist"},"value":1550.56,"formattedValue":"16"},{"0CALYEAR":{"key":"2020","text":"2020"},"TYPE":{"key":"ziel","text":"Ziel"},"value":1700.32,"formattedValue":"17"},{"0CALYEAR":{"key":"2020","text":"2020"},"TYPE":{"key":"ist","text":"Ist"},"value":1800.48,"formattedValue":"18"}]`);
         }
     </script>
 </body>
